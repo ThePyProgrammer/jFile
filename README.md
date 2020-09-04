@@ -146,7 +146,7 @@ These are all FileChooser.ExtensionFilters builtin as public and static values.
 Stage stage = new Stage();
 File pngFile = File.getFile(stage, File.PNG);
 File pdfFile = File.getPDF(stage);
-File[] htmlFiles = File.getHTMLs(stage);
+File[] htmlFiles = File.getHTMLs();
 ```
 
 There are also functionalities to access FileChooser dialogs with only certain extension filters.
