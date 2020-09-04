@@ -42,7 +42,7 @@ jFile, made by Prannaya Gupta.
 ```
 This is the ```TextIOWrapper``` in the Python Programming Language.
 
-### The Java File Wrapper
+### The Java ```File``` Wrapper
 I have made this very similar wrapper in the Java Programming Language.
 
 ```java
