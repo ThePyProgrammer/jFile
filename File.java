@@ -1,19 +1,36 @@
+import javafx.stage.*;
+
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
-
-import javafx.stage.*;
 
 public class File extends java.io.File implements Cloneable, AutoCloseable {
     public PrintWriter out = null;
     public Scanner in = null;
     public FileOutputStream outstream = null;
     private char type;
+
+    // JavaFX Integration
     private static FileChooser fc = new FileChooser();
     private static DirectoryChooser dc = new DirectoryChooser();
 
+    // Ensuring only a singular in, out exists per file
+    private static HashMap<String, Scanner> scanners = new HashMap<>();
+    private static HashMap<String, PrintWriter> appendwriters = new HashMap<>();
+    private static HashMap<String, PrintWriter> overwriters = new HashMap<>();
+    private static HashMap<String, FileOutputStream> writeoutstreams = new HashMap<>();
+    private static HashMap<String, FileOutputStream> appendoutstreams = new HashMap<>();
+
+    // Extension Filters
     public static FileChooser.ExtensionFilter PNG = new FileChooser.ExtensionFilter("Portable Newtwork Graphics (PNG) Files", "*.png"),
             ICO = new FileChooser.ExtensionFilter("ICO Files", "*.ico"),
             JPG = new FileChooser.ExtensionFilter("JPEG Files", "*.jpg", "*.jpeg"),
@@ -49,12 +66,14 @@ public class File extends java.io.File implements Cloneable, AutoCloseable {
             LATEX = new FileChooser.ExtensionFilter("LaTeX Files", "*.tex", "*.aux", "*.toc"),
             SQL = new FileChooser.ExtensionFilter("Structured Query Language (SQL) Files", "*.sql");
 
-    //
+    // Setting Initial Directory
     static {
         fc.setInitialDirectory(new java.io.File(System.getProperty("user.dir")));
         dc.setInitialDirectory(new java.io.File(System.getProperty("user.dir")));
     }
 
+
+    // Constructors
     public File(String filename) {
         this(filename, 'r');
     }
@@ -67,38 +86,77 @@ public class File extends java.io.File implements Cloneable, AutoCloseable {
         this.type = type;
         if(!isDirectory()) {
             if ((type == 'r' || type == 'w' || type == 'a') && Files.isReadable(toPath())) {
-                try {
-                    in = new Scanner(this);
-                } catch (IOException e) {}
+                if(scanners.containsKey(getAbsolutePath())) in = scanners.get(getAbsolutePath());
+                else {
+                    try { in = new Scanner(this); scanners.put(getAbsolutePath(), in); } catch (IOException e) {}
+                }
             }
-            if (type == 'r') {
-                outstream = null;
-                out = null;
-            } else if (type == 'w' && Files.isWritable(toPath())) {
-                try {
-                    outstream = new FileOutputStream(filename);
-                    out = new PrintWriter(outstream);
-                } catch (IOException e) {}
+            if (type == 'w' && Files.isWritable(toPath())) {
+                if(writeoutstreams.containsKey(getAbsolutePath()) && overwriters.containsKey(getAbsolutePath())) {
+                    outstream = writeoutstreams.get(getAbsolutePath());
+                    out = overwriters.get(getAbsolutePath());
+                } else {
+                    try {
+                        outstream = new FileOutputStream(filename);
+                        out = new PrintWriter(outstream);
+                        writeoutstreams.put(getAbsolutePath(), outstream);
+                        overwriters.put(getAbsolutePath(), out);
+                    } catch (IOException e) {}
+                }
             } else if (type == 'a' && Files.isWritable(toPath())) {
-                try {
-                    outstream = new FileOutputStream(filename, true);
-                    out = new PrintWriter(outstream);
-                } catch (IOException e) {
-                    out = null;
+                if(appendoutstreams.containsKey(getAbsolutePath()) && appendwriters.containsKey(getAbsolutePath())) {
+                    outstream = appendoutstreams.get(getAbsolutePath());
+                    out = appendwriters.get(getAbsolutePath());
+                } else {
+                    try {
+                        outstream = new FileOutputStream(filename, true);
+                        out = new PrintWriter(outstream);
+                        appendoutstreams.put(getAbsolutePath(), outstream);
+                        appendwriters.put(getAbsolutePath(), out);
+                    } catch (IOException e) {}
                 }
             }
         }
     }
 
     public File() { this('r'); }
-
     public File(char type) { this(getFile(), type); }
 
     public File(java.io.File file) { this(file.getAbsolutePath()); }
-
     public File(java.io.File file, char type) { this(file.getAbsolutePath(), type); }
 
+    public File(URL url) { this(url.getFile()); }
+    public File(URL url, char type) { this(url.getFile(), type); }
+
+    public File(URI uri) throws MalformedURLException { this(uri.toURL().getFile()); }
+    public File(URI uri, char type) throws MalformedURLException { this(uri.toURL().getFile(), type); }
+
+    public static File read(String filename) { return new File(filename); }
+    public static File read(File file) { return new File(file); }
+    public static File read(java.io.File file) { return new File(file); }
+    public static File read(URI uri) throws MalformedURLException { return new File(uri); }
+    public static File read(URL url) { return new File(url); }
+
+    public static File write(String filename) { return new File(filename, 'w'); }
+    public static File write(File file) { return new File(file, 'w'); }
+    public static File write(java.io.File file) { return new File(file, 'w'); }
+    public static File write(URI uri) throws MalformedURLException { return new File(uri, 'w'); }
+    public static File write(URL url) { return new File(url, 'w'); }
+
+    public static File append(String filename) { return new File(filename, 'a'); }
+    public static File append(File file) { return new File(file, 'a'); }
+    public static File append(java.io.File file) { return new File(file, 'a'); }
+    public static File append(URI uri) throws MalformedURLException { return new File(uri, 'a'); }
+    public static File append(URL url) { return new File(url, 'a'); }
+
+
+    // Methods
     public String getName() { return getAbsolutePath(); }
+    public File getAbsoluteFile() { return new File(super.getAbsoluteFile()); }
+    public File getParentFile() { return new File(super.getParentFile()); }
+    public File getCanonicalFile() {
+        try { return new File(super.getCanonicalFile()); } catch (IOException e) { return null; }
+    }
 
     public boolean rename(File dest) { return renameTo(dest); }
 
@@ -108,26 +166,23 @@ public class File extends java.io.File implements Cloneable, AutoCloseable {
     public String getRelativePath(String directory) { return new File(directory).relativize(this); }
     public String getRelativePath(File directory) { return directory.relativize(this); }
     public String getRelativePath(java.io.File directory) { return directory.toURI().relativize(this.toURI()).getPath(); }
+    public String getRelativePath(URI directory) { return directory.relativize(this.toURI()).getPath(); }
+    public String getRelativePath(URL directory) throws URISyntaxException { return directory.toURI().relativize(this.toURI()).getPath(); }
 
     public static File[] convert(java.io.File ...files) { return convert(Arrays.asList(files)); }
 
-    public static File[] convert(List<java.io.File> files) {
+    public static File[] convert(Collection<java.io.File> files) {
         File[] rearr = new File[files.size()];
-        for(int i = 0; i < files.size(); i++) {
-            rearr[i] = new File(files.get(i));
+        int i = 0;
+        for(java.io.File file: files) {
+            rearr[i] = new File(file);
+            i++;
         }
         return rearr;
     }
 
-    public static File getFile(Stage stage) {
-        fc.setInitialDirectory(new java.io.File(System.getProperty("user.dir")));
-        return convert(fc.showOpenDialog(stage))[0];
-    }
-
-    public static File[] getFiles(Stage stage) {
-        fc.setInitialDirectory(new File(System.getProperty("user.dir")));
-        return convert(fc.showOpenMultipleDialog(stage));
-    }
+    public static File getFile(Stage stage) { return convert(fc.showOpenDialog(stage))[0]; }
+    public static File[] getFiles(Stage stage) { return convert(fc.showOpenMultipleDialog(stage)); }
 
     public static File getFile() { return getFile(new Stage()); }
     public static File[] getFiles() { return getFiles(new Stage()); }
@@ -430,39 +485,25 @@ public class File extends java.io.File implements Cloneable, AutoCloseable {
     }
 
     public String read() {
-        if (this.in != null) {
-            Scanner inp;
-            try {
-                inp = new Scanner(this);
-                String res = "";
-                while (inp.hasNext()) {
-                    res += inp.nextLine()+'\n';
-                }
-                return res;
-            } catch (IOException e) {
-                return "";
-            }
-        }
-        else return "";
+        try {
+            return new String(Files.readAllBytes(Paths.get(getAbsolutePath())));
+        } catch (IOException e) {}
+        return "";
     }
 
     public String readLine() {
-        if (in != null) {
-            if (!hasNext()) {
-                try {
-                    in = new Scanner(this);
-                } catch (IOException e) {
-                    in = null;
-                }
+        if(in != null) {
+            if(hasNext()) return in.nextLine();
+            else {
+                try { Scanner inp = new Scanner(this); return inp.nextLine(); } catch (IOException e) {}
             }
-            return in.nextLine();
-        }
-        else return "";
+        } return "";
     }
 
     public String[] readLines() {
-        if (in != null) return read().split("\n");
-        else return new String[0];
+        List<String> lines = Collections.emptyList();
+        try { lines = Files.readAllLines(Paths.get(getAbsolutePath()), StandardCharsets.UTF_8); } catch (IOException e) {}
+        return lines.toArray(new String[lines.size()]);
     }
 
     public void close() {
@@ -474,14 +515,9 @@ public class File extends java.io.File implements Cloneable, AutoCloseable {
 
     @Override
     public boolean equals(Object obj) {
-        System.out.println("equals(Object) called");
         if (obj == this) return true;
-        if(obj == null) return false;
-        if (obj instanceof File) {
-            File file = (File) obj;
-            return getAbsolutePath().equals(file.getAbsolutePath());
-        }
-        return false;
+        if(obj == null || !(obj instanceof File)) return false;
+        return getAbsolutePath().equals(((File) obj).getAbsolutePath());
     }
 
     public boolean equals(File other) { return getAbsolutePath().equals(other.getAbsolutePath()); }
