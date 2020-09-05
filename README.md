@@ -102,8 +102,10 @@ sc.close();
 ```
 ## A IO Wrapper that uses many other APIs available
 ### ```java.net.URI```
-This code also employs some simple tactics from ```java.net.URI``` that can allow relativizing of paths. In this case, this is still a TODO feature.
+This code also employs some simple tactics from ```java.net.URI``` that can allow relativizing of paths.
 
+### ```Base``` Class
+This is a custom interface I have created to add Math functions, Random functions and custom I/O functions. It's quite a simple program aimed at adding static and default methods to each class. TL;DR, add a line ```implements Base``` to access all these methods.
 
 ### Integration of JavaFX
 This class heavily uses [JavaFX 14](https://openjfx.io/), with the introduction of file getter methods to open file dialogs. This is immensely shown with the filetypes freely available in this, as follows:
