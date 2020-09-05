@@ -1,19 +1,14 @@
-import javafx.stage.*;
-
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
 
-public class File extends java.io.File implements Cloneable, AutoCloseable {
+import javafx.stage.*;
+
+public class File extends java.io.File implements Cloneable, AutoCloseable, Base {
     public PrintWriter out = null;
     public Scanner in = null;
     public FileOutputStream outstream = null;
