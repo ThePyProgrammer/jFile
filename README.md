@@ -105,7 +105,41 @@ sc.close();
 This code also employs some simple tactics from ```java.net.URI``` that can allow relativizing of paths.
 
 ### ```Base``` Class
-This is a custom interface I have created to add Math functions, Random functions and custom I/O functions. It's quite a simple program aimed at adding static and default methods to each class. TL;DR, add a line ```implements Base``` to access all these methods.
+This is a custom interface I have created to add Math functions, Random functions and custom I/O functions. It's quite a simple program aimed at adding static and default methods to each class. TL;DR, add a line ```implements Base``` to access all these methods. To explain ```Base```, just read the following code:
+
+```java
+class Trigo implements Base {
+  public static void main(String[] args) {
+    print("Hello World", 69, "Cool");
+    print(sin(pi/3));
+    print(cos(toRadians(randInt(-180, 180)));
+    print(acos(randDouble(-1, 1)));
+    new Trigo().print();
+  }
+  
+  public String toString() { return "Trigo is cool"; }
+}
+```
+
+This code replaces the following:
+
+```java
+class Trigo implements Base {
+  public static void main(String[] args) {
+    System.out.print("Hello World");
+    System.out.print(69);
+    System.out.print("Cool");
+    System.out.print(Math.sin(Math.PI/3));
+    System.out.print(Math.cos(Math.toRadians(-180 + new Random().nextInt(360)));
+    System.out.print(Math.acos(-1 + 2*Math.random()));
+    System.out.print(new Trigo().toString());
+  }
+  
+  public String toString() { return "Trigo is cool"; }
+}
+```
+
+While this may not be a very significant improvement, this class provides seamless functions instead of having to rely on static methods from the Math and Random classes.
 
 ### Integration of JavaFX
 This class heavily uses [JavaFX 14](https://openjfx.io/), with the introduction of file getter methods to open file dialogs. This is immensely shown with the filetypes freely available in this, as follows:
