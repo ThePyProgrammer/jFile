@@ -1,6 +1,8 @@
 # jFile
 
-jFile, made by Prannaya Gupta.
+![jFile](jFile.png)
+
+Created by Prannaya Gupta
 
 ## A Java File Wrapper based on the Python ```TextIOWrapper```
 ### Python ```TextIOWrapper```
