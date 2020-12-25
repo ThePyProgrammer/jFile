@@ -1,6 +1,8 @@
 # jFile
 
-![jFile](jFile.png)
+<p align="center">
+  <img src="jFile.png" width="400" alt="jFile">
+</p>
 
 Created by Prannaya Gupta
 
