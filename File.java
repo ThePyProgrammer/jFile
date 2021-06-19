@@ -8,7 +8,7 @@ import java.util.*;
 
 import javafx.stage.*;
 
-public class File extends java.io.File implements Cloneable, AutoCloseable, Base {
+public class File extends java.io.File implements Cloneable, AutoCloseable {
     public PrintWriter out = null;
     public Scanner in = null;
     public FileOutputStream outstream = null;
